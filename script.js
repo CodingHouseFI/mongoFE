@@ -41,13 +41,15 @@ angular.module('heimdall', ['ui.router'])
   }
 })
 .factory('Answer', function($http, ATN) {
+  var answers = {};
+
   return {
-    answers: [],
-    getAll: function() {
-      return this.answers;
+    getAll: function(slug) {
+      answers[slug] = answers[slug] || [];
+      return answers[slug];
     },
-    addAnswer: function(newAnswer) {
-      this.answers.push(newAnswer);
+    addAnswer: function(slug, newAnswer) {
+      answers[slug].push(newAnswer);
       // return $http.post(ATN.API_URL + "/questions", newQuestion);
     }
   }
@@ -72,7 +74,7 @@ angular.module('heimdall', ['ui.router'])
 .controller('QuestionCtrl', function($scope, Question, Answer, $state){
   $scope.slug = $state.params.slug;
 
-  $scope.answers = Answer.getAll();
+  $scope.answers = Answer.getAll($scope.slug);
 
   Question.getOne($state.params.slug)
     .success(function(data) {
@@ -83,7 +85,7 @@ angular.module('heimdall', ['ui.router'])
     });
 
   $scope.addAnswer = function() {
-    Answer.addAnswer($scope.answer);
+    Answer.addAnswer($scope.slug, $scope.answer);
     $scope.answer = {};
   };
 
