@@ -40,6 +40,18 @@ angular.module('heimdall', ['ui.router'])
     }
   }
 })
+.factory('Answer', function($http, ATN) {
+  return {
+    answers: [],
+    getAll: function() {
+      return this.answers;
+    },
+    addAnswer: function(newAnswer) {
+      this.answers.push(newAnswer);
+      // return $http.post(ATN.API_URL + "/questions", newQuestion);
+    }
+  }
+})
 .filter("dateInWords", function() {
   return function(input) {
     return moment(input).utc().fromNow();
@@ -57,8 +69,10 @@ angular.module('heimdall', ['ui.router'])
       })
   };
 })
-.controller('QuestionCtrl', function($scope, Question, $state){
+.controller('QuestionCtrl', function($scope, Question, Answer, $state){
   $scope.slug = $state.params.slug;
+
+  $scope.answers = Answer.getAll();
 
   Question.getOne($state.params.slug)
     .success(function(data) {
@@ -67,6 +81,12 @@ angular.module('heimdall', ['ui.router'])
       console.error(err);
       $state.go("404");
     });
+
+  $scope.addAnswer = function() {
+    Answer.addAnswer($scope.answer);
+    $scope.answer = {};
+  };
+
 })
 .controller('MainCtrl', function($scope, Question){
   Question.getAll().success(function(data) {
