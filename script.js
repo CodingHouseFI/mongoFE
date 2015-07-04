@@ -2,7 +2,7 @@
 
 angular.module('heimdall', ['ui.router'])
 .constant("ATN", {
-  "API_URL": "https://mongoexoress.herokuapp.com/"
+  "API_URL": "https://mongoexoress.herokuapp.com"
 })
 .config(function($stateProvider, $urlRouterProvider) {
   $urlRouterProvider.otherwise("/");
@@ -11,6 +11,15 @@ angular.module('heimdall', ['ui.router'])
       url: "/",
       templateUrl: "list.html",
       controller: 'MainCtrl'
+    })
+    .state('404', {
+      url: "/404",
+      templateUrl: "404.html"
+    })
+    .state('new', {
+      url: "/new",
+      templateUrl: "new.html",
+      controller: "NewQuestionCtrl"
     })
     .state('question', {
       url: "/:slug",
@@ -26,7 +35,6 @@ angular.module('heimdall', ['ui.router'])
     getAll: function() {
       return $http.get(ATN.API_URL + "/questions");
     },
-
     addQuestion: function(newQuestion) {
       return $http.post(ATN.API_URL + "/questions", newQuestion);
     }
@@ -37,6 +45,18 @@ angular.module('heimdall', ['ui.router'])
     return moment(input).utc().fromNow();
   }
 })
+.controller('NewQuestionCtrl', function($scope, Question, $state){
+  $scope.askQuestion = function() {
+    Question.addQuestion($scope.question)
+      .success(function(data) {
+        $scope.question = {};
+        $state.go("home");
+      })
+      .catch(function(err) {
+        console.error(err);
+      })
+  };
+})
 .controller('QuestionCtrl', function($scope, Question, $state){
   $scope.slug = $state.params.slug;
 
@@ -45,6 +65,7 @@ angular.module('heimdall', ['ui.router'])
       $scope.question = data;
     }).catch(function(err) {
       console.error(err);
+      $state.go("404");
     });
 })
 .controller('MainCtrl', function($scope, Question){
@@ -53,17 +74,4 @@ angular.module('heimdall', ['ui.router'])
   }).catch(function(err) {
     console.error(err);
   });
-
-  $scope.askQuestion = function() {
-    Question.addQuestion($scope.question)
-      .success(function(data) {
-        $scope.questions.unshift(data);
-        $scope.question = {};
-        $("#new-question-modal").modal("hide");
-      })
-      .catch(function(err) {
-        console.error(err);
-      })
-  };
-
 });
